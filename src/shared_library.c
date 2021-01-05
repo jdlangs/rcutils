@@ -83,7 +83,7 @@ rcutils_load_shared_library(
   if (!lib->lib_pointer) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadLibrary error: %s", dlerror());
 #else
-  lib->lib_pointer = (void *)(LoadLibrary(lib->library_path));
+  lib->lib_pointer = (void *)(LoadLibraryA(lib->library_path));
   if (!lib->lib_pointer) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadLibrary error: %lu", GetLastError());
 #endif  // _WIN32
