@@ -84,16 +84,24 @@ rcutils_load_shared_library(
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadLibrary error: %s", dlerror());
 #else
   wchar_t libpath_w[MAX_PATH];
-  int nwrite = MultiByteToWideChar(
-    CP_UTF8,
-    MB_ERR_INVALID_CHARS,
-    lib->library_path,
-    -1,
-    libpath_w,
-    MAX_PATH);
-  lib->lib_pointer = (void *)(LoadPackagedLibrary(libpath_w, 0));
-  if (!lib->lib_pointer) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadPackagedLibrary error: %lu", GetLastError());
+  #if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+    #pragma message( "Compiling for UWP" )
+    int nwrite = MultiByteToWideChar(
+      CP_UTF8,
+      MB_ERR_INVALID_CHARS,
+      lib->library_path,
+      -1,
+      libpath_w,
+      MAX_PATH);
+    lib->lib_pointer = (void *)(LoadPackagedLibrary(libpath_w, 0));
+    if (!lib->lib_pointer) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadPackagedLibrary error: %lu", GetLastError());
+  #else
+    #pragma message( "Compiling for Windows Desktop" )
+    lib->lib_pointer = (void *)(LoadLibraryA(lib->library_path));
+    if (!lib->lib_pointer) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("LoadLibrary error: %lu", GetLastError());
+  #endif
 #endif  // _WIN32
     lib->allocator.deallocate(lib->library_path, lib->allocator.state);
     lib->library_path = NULL;
